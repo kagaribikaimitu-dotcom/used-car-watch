@@ -17,8 +17,7 @@ def notify(message):
     requests.post(WEBHOOK, json={"content": message})
 
 def check():
-    print("WEBHOOK =", WEBHOOK)
-    notify("✅ GitHub Actions テスト通知")
+    pass
 
 if __name__ == "__main__":
     check()
