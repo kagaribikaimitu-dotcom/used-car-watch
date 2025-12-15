@@ -38,38 +38,21 @@ def extract_cars_from_carsensor(html_text):
 
 # ---------------------------------
 def check():
-    new_listings = []
-
-    notify("【テスト】check() 実行確認")
-
     name = "カーセンサー"
     url = URLS[name]
-    print(f"[INFO] Fetching {name} ... {url}")
 
-    try:
-        r = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
-    except Exception as e:
-        print("HTTP取得失敗:", e)
-        return
+    r = requests.get(
+        url,
+        timeout=15,
+        headers={"User-Agent": "Mozilla/5.0"}
+    )
 
-    if r.status_code != 200:
-        print("ステータスコード:", r.status_code)
-        return
-
-    print("HTML length:", len(r.text))
-
-    car_urls = extract_cars_from_carsensor(r.text)
-    print(f"Found {len(car_urls)} car links")
-
-    for cu in car_urls:
-        new_listings.append(f"{name} | {cu}")
-
-    if new_listings:
-        body = "🚗 **カーセンサー検索結果（仮）**\n\n"
-        body += "\n".join(new_listings[:10])
-        notify(body)
-    else:
-        print("No car URLs found")
+    notify(
+        f"【DEBUG】\n"
+        f"status={r.status_code}\n"
+        f"length={len(r.text)}\n"
+        f"sample:\n{r.text[:500]}"
+    )
 # ---------------------------------
 if __name__ == "__main__":
     check()
