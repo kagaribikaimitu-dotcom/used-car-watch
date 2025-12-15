@@ -38,21 +38,7 @@ def extract_cars_from_carsensor(html_text):
 
 # ---------------------------------
 def check():
-    name = "カーセンサー"
-    url = URLS[name]
-
-    r = requests.get(
-        url,
-        timeout=15,
-        headers={"User-Agent": "Mozilla/5.0"}
-    )
-
-    notify(
-        f"【DEBUG】\n"
-        f"status={r.status_code}\n"
-        f"length={len(r.text)}\n"
-        f"sample:\n{r.text[:500]}"
-    )
+    notify("【DEBUG】ここまで実行されてます")
 # ---------------------------------
 if __name__ == "__main__":
     check()
