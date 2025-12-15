@@ -17,19 +17,7 @@ def notify(message):
     requests.post(WEBHOOK, json={"content": message})
 
 def check():
-    hits = []
-    for name, url in URLS.items():
-        r = requests.get(url, timeout=15)
-        soup = BeautifulSoup(r.text, "html.parser")
-
-        # 仮：VMレヴォーグ文字列チェック（あとで調整）
-        if "レヴォーグ" in soup.text:
-            hits.append(f"{name} に該当あり\n{url}")
-
-    if hits:
-        notify("🚗 **VMレヴォーグ新着候補**\n\n" + "\n\n".join(hits))
-    else:
-        print("No hits")
+    notify("✅ GitHub Actions からのテスト通知です")
 
 if __name__ == "__main__":
     check()
