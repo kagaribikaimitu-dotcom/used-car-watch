@@ -10,7 +10,13 @@ WEBHOOK = os.environ.get("DISCORD_WEBHOOK_URL")
 SEEN_FILE = "seen.txt"
 
 URLS = {
-    "カーセンサー": "https://www.carsensor.net/usedcar/search.php?CARC=SB_S052&GRDKC=SB_S052_F001_K018%2ASB_S052_F001_K022&OPTCD=REP0&YMIN=2017&SMAX=100000&CL=GL&AL=1&SORT=19&STID=SMPH0001"
+    "カーセンサー": "https://www.carsensor.net/usedcar/search.php?CARC=SB_S052&GRDKC=SB_S052_F001_K018%2ASB_S052_F001_K022&OPTCD=REP0&YMIN=2017&SMAX=100000&CL=GL&AL=1&SORT=19&STID=SMPH0001",
+    "グーネット": "https://www.goo-net.com/php/search/summary.php",
+    "スグダス": "https://ucar.subaru.jp/php/search/summary.php?baitai=iphone"
+}
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0"
 }
 
 # ==============================
@@ -19,12 +25,11 @@ URLS = {
 
 def notify(message):
     if not WEBHOOK:
-        print("Webhook未設定のため通知スキップ")
         return
     requests.post(WEBHOOK, json={"content": message})
 
 # ==============================
-# 既出URLの読み書き
+# 既出URLの管理
 # ==============================
 
 def load_seen():
@@ -39,48 +44,67 @@ def save_seen(urls):
             f.write(u + "\n")
 
 # ==============================
-# カーセンサーHTML解析
+# 各サイトのURL抽出
 # ==============================
 
-def extract_cars_from_carsensor(html_text):
-    soup = BeautifulSoup(html_text, "html.parser")
-    results = set()
+def extract_carsensor(html):
+    soup = BeautifulSoup(html, "html.parser")
+    return {
+        "https://www.carsensor.net" + a["href"]
+        for a in soup.select("a[href^='/usedcar/detail/']")
+    }
 
-    for a in soup.select("a[href*='/usedcar/detail/']"):
-        href = a.get("href")
-        if href and href.startswith("/usedcar/detail/"):
-            results.add("https://www.carsensor.net" + href)
+def extract_goonet(html):
+    soup = BeautifulSoup(html, "html.parser")
+    return {
+        a["href"]
+        for a in soup.select("a[href*='/usedcar/detail/']")
+        if a["href"].startswith("https://")
+    }
 
-    return list(results)
+def extract_sugudas(html):
+    soup = BeautifulSoup(html, "html.parser")
+    return {
+        "https://ucar.subaru.jp" + a["href"]
+        for a in soup.select("a[href^='/vehicle/']")
+    }
+
+EXTRACTORS = {
+    "カーセンサー": extract_carsensor,
+    "グーネット": extract_goonet,
+    "スグダス": extract_sugudas,
+}
 
 # ==============================
 # メイン処理
 # ==============================
 
 def check():
-    name = "カーセンサー"
-    url = URLS[name]
-
-    r = requests.get(
-        url,
-        headers={"User-Agent": "Mozilla/5.0"},
-        timeout=15
-    )
-
-    if r.status_code != 200:
-        notify(f"⚠️ {name} 取得失敗 status={r.status_code}")
-        return
-
-    car_urls = extract_cars_from_carsensor(r.text)
-
     seen = load_seen()
-    new_cars = [u for u in car_urls if u not in seen]
+    found_all = set()
+    new_all = []
 
-    if new_cars:
-        msg = "🚗 **新着 レヴォーグ 2.0 STI**\n\n" + "\n".join(new_cars[:5])
+    for name, url in URLS.items():
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=15)
+            if r.status_code != 200:
+                continue
+
+            urls = EXTRACTORS[name](r.text)
+            found_all |= urls
+
+            for u in urls:
+                if u not in seen:
+                    new_all.append(f"{name} | {u}")
+
+        except Exception:
+            continue
+
+    if new_all:
+        msg = "🚗 **新着 レヴォーグ 2.0 STI**\n\n" + "\n".join(new_all[:10])
         notify(msg)
 
-    save_seen(car_urls)
+    save_seen(found_all)
 
 # ==============================
 # 実行
