@@ -101,7 +101,7 @@ def check():
             continue
 
     if new_all:
-        msg = "🚗 **新着 レヴォーグ 2.0 STI**\n\n" + "\n".join(new_all[:10])
+        msg = "🚗 **新着 レヴォーグ 2.0 STI**\n\n" + "\n".join(new_all)
         notify(msg)
 
     save_seen(found_all)
