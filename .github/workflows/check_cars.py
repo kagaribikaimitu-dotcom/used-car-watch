@@ -11,6 +11,9 @@ URLS = {
 }
 
 def notify(message):
+    if not WEBHOOK:
+        print("Webhook未設定のため通知スキップ")
+        return
     requests.post(WEBHOOK, json={"content": message})
 
 def check():
