@@ -38,8 +38,10 @@ def extract_cars_from_carsensor(html_text):
 
 # ---------------------------------
 def check():
+    new_listings = []
+
     notify("【テスト】check() 実行確認")
-    # まずカーセンサーだけ
+
     name = "カーセンサー"
     url = URLS[name]
     print(f"[INFO] Fetching {name} ... {url}")
@@ -54,25 +56,20 @@ def check():
         print("ステータスコード:", r.status_code)
         return
 
-    # HTML取得OK
     print("HTML length:", len(r.text))
 
-    # 詳細URL一覧を抽出
     car_urls = extract_cars_from_carsensor(r.text)
     print(f"Found {len(car_urls)} car links")
 
-    # ここでは「全部リストアップ」だけ
     for cu in car_urls:
         new_listings.append(f"{name} | {cu}")
 
-    # 通知する（今回は全部）
     if new_listings:
         body = "🚗 **カーセンサー検索結果（仮）**\n\n"
-        body += "\n".join(new_listings[:10])  # 最初の10件だけ
+        body += "\n".join(new_listings[:10])
         notify(body)
     else:
         print("No car URLs found")
-
 # ---------------------------------
 if __name__ == "__main__":
     check()
