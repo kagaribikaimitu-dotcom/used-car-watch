@@ -21,7 +21,23 @@ def notify(message):
     requests.post(WEBHOOK, json={"content": message})
 
 def check():
-    notify("✅ GitHub Actions からのテスト通知です")
+    url = URLS["カーセンサー"]
 
+    r = requests.get(
+        url,
+        headers={"User-Agent": "Mozilla/5.0"},
+        timeout=15
+    )
+
+    car_urls = extract_cars_from_carsensor(r.text)
+
+    seen = load_seen()
+    new_cars = [u for u in car_urls if u not in seen]
+
+    if new_cars:
+        msg = "🚗 新着レヴォーグ出品\n\n" + "\n".join(new_cars[:5])
+        notify(msg)
+
+    save_seen(car_urls)
 if __name__ == "__main__":
     check()
