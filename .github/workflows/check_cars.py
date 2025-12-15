@@ -38,8 +38,7 @@ def extract_cars_from_carsensor(html_text):
 
 # ---------------------------------
 def check():
-    new_listings = []
-
+    notify("【テスト】check() 実行確認")
     # まずカーセンサーだけ
     name = "カーセンサー"
     url = URLS[name]
